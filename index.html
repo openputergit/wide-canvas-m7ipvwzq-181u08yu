@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Learning & Review Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .clay-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 
+                20px 20px 60px #bebebe,
+                -20px -20px 60px #ffffff;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            transition: transform 0.3s ease;
+        }
+        .clay-card:hover {
+            transform: translateY(-5px);
+        }
+        .clay-button {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 
+                8px 8px 16px #bebebe,
+                -8px -8px 16px #ffffff;
+            transition: all 0.3s ease;
+        }
+        .clay-button:hover {
+            box-shadow: 
+                4px 4px 8px #bebebe,
+                -4px -4px 8px #ffffff;
+            transform: translateY(2px);
+        }
+        .loading {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen p-4">
+    <div class="container mx-auto max-w-6xl">
+        <h1 class="text-4xl font-bold text-center mb-8 text-blue-800">Smart Learning & Review Assistant</h1>
+        
+        <!-- Screen Activity Monitor Section -->
+        <div class="clay-card p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Screen Activity Monitor</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <div id="screenshot-preview" class="bg-gray-100 h-48 rounded-lg flex items-center justify-center mb-4">
+                        <p class="text-gray-500">Screenshot Preview</p>
+                    </div>
+                    <button onclick="startMonitoring()" class="clay-button px-6 py-3 w-full text-blue-600 font-semibold">
+                        Start Monitoring
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <div class="clay-card p-4 h-full">
+                        <h3 class="font-semibold mb-2">Activity Statistics</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Educational Content:</span>
+                                <span id="educational-time">0 mins</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Entertainment:</span>
+                                <span id="entertainment-time">0 mins</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Analyzer Section -->
+        <div class="clay-card p-6">
+            <h2 class="text-2xl font-semibold mb-4">Review Analyzer</h2>
+            <div class="mb-4">
+                <textarea id="review-text" class="w-full p-3 rounded-lg border" rows="4" 
+                    placeholder="Enter the product review here..."></textarea>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="analyzeReview()" class="clay-button px-6 py-3 flex-1 text-blue-600 font-semibold">
+                    Analyze Review
+                </button>
+                <div id="analysis-loading" class="loading"></div>
+            </div>
+            <div id="result" class="mt-4 hidden p-4 rounded-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        let isMonitoring = false;
+        let educationalTime = 0;
+        let entertainmentTime = 0;
+
+        async function startMonitoring() {
+            isMonitoring = !isMonitoring;
+            const button = document.querySelector('button');
+            button.textContent = isMonitoring ? 'Stop Monitoring' : 'Start Monitoring';
+
+            if (isMonitoring) {
+                // Simulating screen capture and analysis
+                setInterval(() => {
+                    const random = Math.random();
+                    if (random > 0.5) {
+                        educationalTime += 1;
+                    } else {
+                        entertainmentTime += 1;
+                    }
+                    updateStats();
+                }, 60000); // Update every minute
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('educational-time').textContent = `${educationalTime} mins`;
+            document.getElementById('entertainment-time').textContent = `${entertainmentTime} mins`;
+        }
+
+        async function analyzeReview() {
+            const reviewText = document.getElementById('review-text').value;
+            if (!reviewText) {
+                alert('Please enter a review to analyze');
+                return;
+            }
+
+            const loading = document.getElementById('analysis-loading');
+            const result = document.getElementById('result');
+            loading.style.display = 'block';
+            result.classList.add('hidden');
+
+            try {
+                const response = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer cUWzptzsnUfKnDuo1cYSTYtcqW33',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: "user",
+                            content: [{
+                                type: "text",
+                                text: `Analyze if this review is genuine or fake: ${reviewText}`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                result.classList.remove('hidden');
+                result.innerHTML = `
+                    <div class="clay-card p-4">
+                        <h3 class="font-semibold mb-2">Analysis Result</h3>
+                        <p>${data.message}</p>
+                    </div>
+                `;
+            } catch (error) {
+                result.classList.remove('hidden');
+                result.innerHTML = `
+                    <div class="bg-red-100 p-4 rounded-lg">
+                        <p class="text-red-600">Error analyzing review. Please try again.</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
